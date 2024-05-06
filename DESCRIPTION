@@ -1,0 +1,20 @@
+Package: hydroclim
+Title: Calculate and Plot Hydroclimate Data
+Version: 0.0.0.9000
+Authors@R: 
+    person("Ryan", "Connon", , "ryan_connon@gov.nt.ca", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-2420-3609"))
+Description: This is a package used to calculate and visualize real time hydroclimatic data in Canada, with an emphasis on the Northwest Territories. A vetted user ID is necessary to access real time hydrometric data.
+License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
+    license
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Imports:
+	dplyr (>= 1.1.2),
+	tidyhydat (>= 0.6.0),
+	tidyhydat.ws (>= 0.1.5),
+	fasstr (>= 0.5.1),
+	ggplot2 (>= 3.4.2),
+	magrittr (>= 2.0.3),
+	lubridate (>= 1.9.2)
