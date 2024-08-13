@@ -2,10 +2,10 @@
 
 # function and all code below
 map_station_data<- function(parameter,
-                            select_year, 
+                            select_year,
                             start_year,
                             months,
-                            max_missing_days, 
+                            max_missing_days,
                             max_monthly_missing_days,
                             max_missing_months,
                             percent_of_normal,
@@ -16,8 +16,8 @@ map_station_data<- function(parameter,
                             water_year_start,
                             filename)
 
-# 
-# parameter <- "rain" #
+#
+# parameter <- "mean_temp" #
 # select_year <- 2022
 # start_year <- 1999
 # months <- c(1:12)
@@ -35,12 +35,12 @@ map_station_data<- function(parameter,
 
 
 {
-  `%>%` <- magrittr::`%>%` 
+  `%>%` <- magrittr::`%>%`
   `%!in%` = Negate(`%in%`)
   savepath_climate <- "C:/Users/maucl/Documents/NT_Hydrology/Figures/"
-  
+
   # if(exists("cd_rds") == F) {
-  
+
   ## NOTE: Commented out April 2024
   # merged_data = "Climate_data_clean_merged.rds"
   sites = "sites_map.csv"
@@ -48,97 +48,97 @@ map_station_data<- function(parameter,
   # cd_rds <- readRDS(paste0(directory, merged_data))
   sites <- read.csv(paste0(directory, sites))
   # }
-  
+
   # Added by MA April 2024 - attempt to use Ryan's annual calc to read in data to reduce redundancies
-  parameter <- clim_parameter(parameter = parameter)[[1]] 
-  
+  parameter <- clim_parameter(parameter = parameter)[[1]]
+
   site <- "all"
 
   winter_months <- c(1:4, 10:12)
   this.year <- lubridate::year(Sys.Date())
   this.month <- lubridate::month(Sys.Date())
   this.day <- lubridate::day(Sys.Date())
-  
- 
-  
+
+
   newdf <- clim_calc_monthly(
     site = site,
     parameter = parameter,
     start_year = start_year,
-    end_year = this.year, # note - assigning end_year as current year 
+    end_year = this.year, # note - assigning end_year as current year
     select_year = select_year,
     water_year_start = water_year_start
   )
 
-## commented out temporarily 
+## commented out temporarily
   # if(select_year == this.year & (this.month < max(months)) & water_year == FALSE) {
   #   stop("No data available. You have selected the current year, but with months in the future")
   # }
-  # 
+  #
   if(percent_of_normal == T & parameter == "mean_temp" |
      percent_of_normal == T & parameter == "t_air") {
     legend_numbers <-  c(-100, -2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2, 100)
-    legend_labels <-  c("< -2 °C", "-1.5 °C", "-1 °C", 
-                        "-0.5 °C", "0 °C", "+0.5°C", 
+    legend_labels <-  c("< -2 °C", "-1.5 °C", "-1 °C",
+                        "-0.5 °C", "0 °C", "+0.5°C",
                         "+1°C", "+1.5°C", "+2 °C", "> 2°C")
   } else if(percent_of_normal == T) {
     legend_numbers <-  c(0, 50, 70, 90, 110, 130, 150, 200, 10000)
-    legend_labels <-  c("< 50", "50 - 69", "70 - 89", "99 - 109", "110 - 129", 
+    legend_labels <-  c("< 50", "50 - 69", "70 - 89", "99 - 109", "110 - 129",
                         "130 - 149", "150 - 199", "> 200")
   } else {
     legend_numbers <- c(0, 30, 50, 70, 90, 110, 130, 150, 10000)
-    legend_labels <-  c("< 30", "30 - 49", "50 - 69", "70 - 89", "90 - 109", 
+    legend_labels <-  c("< 30", "30 - 49", "50 - 69", "70 - 89", "90 - 109",
                         "110 - 129", "130 - 149", "> 150")
   }
-  
-  
+
+
   # Changed by MA, March 2024 - Ensure there is only one lat/lon per site
-  
+
   data_adj <- NULL
   data_parse <- newdf %>%
     dplyr::group_by(Site) %>%
-    dplyr::filter(Month %in% months) 
+    dplyr::filter(Month %in% months)
   data_adj <- dplyr::bind_rows(data_adj, data_parse)
-  
+
   # filter lat
   data <- data_adj %>%
     dplyr::filter(lat < 69.5)
 
   # summarize monthly values & ensure max monthly missing days meet requirement, else NA
-  param_operator <- clim_parameter(parameter = parameter)[[5]] 
+  param_operator <- clim_parameter(parameter = parameter)[[5]]
 
   ## changed df_summary_monthly - assign NA to Value if MissingDays < max_monthly_missing_days
   df_summary_monthly <- data %>%
-    dplyr::group_by(Site, Year, Month) %>%
-    dplyr::reframe(Value = ifelse(MissingDays > max_monthly_missing_days, NA, Value),
-                   Site=Site, lat=lat, lon=lon, Parameter=Parameter, Year=Year, Month=Month,
-                   MonthName=MonthName, MissingDays=MissingDays) 
+    dplyr::reframe(Site=Site, lat=lat, lon=lon, Parameter=Parameter, Year=Year, Month=Month,
+                   MonthName=MonthName,
+                   Value = ifelse(MissingDays > max_monthly_missing_days, NA, Value),
+                   MissingDays=MissingDays)
 
+  # get record_length and summarize based on param_operator
   df_summary <- df_summary_monthly %>%
     dplyr::group_by(Site) %>%
     dplyr::reframe(record_length = dplyr::n_distinct(Year[!is.na(Value)]),
                    Year = Year,
                    Value = Value) %>%
     dplyr::group_by(Site, Year) %>%
-    dplyr::reframe(value_normal = ifelse(sum(is.na(Value)) > max_missing_months, 
-                                         NA, 
+    dplyr::reframe(value_normal = ifelse(sum(is.na(Value)) > max_missing_months,
+                                         NA,
                                          param_operator(Value, na.rm = T)),
                    record_length = record_length)
-  
-  
+
+
   df_summary <- unique (df_summary)
-  
+
   # remove NA normals, ensure record_length is accurate & greater than input years_of_record
   df_normal <- df_summary %>%
     dplyr::filter(!is.na(value_normal)) %>%
     dplyr::group_by(Site) %>%
-    dplyr::summarize(value_normal = round(mean(value_normal), 1), 
+    dplyr::summarize(value_normal = round(mean(value_normal), 1),
                      record_length = length(Site),
                      .groups = "drop") %>%
     dplyr::filter(record_length >= years_of_record)
-  
+
   station_list <- unique(df_normal$Site)
-  
+
   # matched Site in 'data' to Site in 'df_normal'
   # get select year & summarize
   df_select_year <- data %>%
@@ -151,24 +151,24 @@ map_station_data<- function(parameter,
       param_operator(Value, na.rm = TRUE)),
       .groups = "drop") %>%
     dplyr::mutate(value_select_year = round(value_select_year, 1))
-  
+
   # filters df_summary to keep rows where Sites match station_list
-  # assigns ranks and only keeps select_year rows 
-  
+  # assigns ranks and only keeps select_year rows
+
 df_rank <- df_summary %>%
     dplyr::filter(Site %in% station_list) %>%
     dplyr::mutate(value_rank = rank(value_normal, na.last = "keep")) %>%
     dplyr::filter(Year == select_year) %>%
-    dplyr::select(Site, value_rank) 
-  
+    dplyr::select(Site, value_rank)
+
+
   # bind dfs for value normal, select_year, and rank
   df <- dplyr::left_join(df_normal, df_select_year, by = "Site") %>%
-    dplyr::left_join(., df_rank, by = "Site") 
-  
-  
+    dplyr::left_join(., df_rank, by = "Site")
+
   # Added by MA:
   # replace NA values in lat/lon with values from sites csv (lots of NA coords)
-  # create merged_df 
+  # create merged_df
   merged_df <- merge(df, sites, by.x = "Site", by.y = "Station", all.x = TRUE)
   # pull latitude and longitude from merged_df to fill in NA lat/lon
   {df <- df %>%
@@ -179,39 +179,39 @@ df_rank <- df_summary %>%
         lon = ifelse(is.na(lon), longitude, lon)
       ) %>%
       dplyr::select(-latitude, -longitude)}
-  
-  
+
+
   # Added by MA:
   # function to pull value_normal from next closest station if record length is <'min_record_length'
-  # note: need "geosphere" package 
+  # note: need "geosphere" package
   update_value_normal <- function(df) {
     # Identify rows with record_length < input value for min_record_length in main fun
     to_update <- df$record_length < min_record_length
-    
+
     # Filter rows with record_length >= input value
     nearby_sites <- df[df$record_length >= min_record_length, ]
-    
+
     # Ensure the coordinates are numeric
     coords_to_update <- df[to_update, c("lon", "lat")]
     coords_nearby_sites <- as.matrix(nearby_sites[c("lon", "lat")])
-    
+
     # Calculate distances for each row with record_length < input value
     distances_matrix <- geosphere::distm(
       coords_to_update,
       cbind(coords_nearby_sites[, "lon"], coords_nearby_sites[, "lat"]),
       fun = geosphere::distVincentySphere
     )
-    
+
     # Find the index of the closest site for each row with record_length < 10
     closest_site_indices <- apply(distances_matrix, 1, which.min)
-    
+
     # Update the value_normal column with nearby sites with record_length < 10
     df$value_normal[to_update] <- nearby_sites$value_normal[closest_site_indices]
-    
+
     return(df)
   }
   df <- update_value_normal(df)
-  
+
   # Override specific sites for rainfall
   if (parameter == "rain" | parameter == "rain_mm" | parameter == "Rainfall" | parameter == "total_rain") {
     # Override value_normal for specific sites
@@ -220,32 +220,32 @@ df_rank <- df_summary %>%
                           "Trail valley")
     replacement_sites <- c("Norman Wells","Gameti","Scotty Creek","Fort Good Hope","Blueberry","Gameti","Peel","Peel", "Yellowknife","Yellowknife",
                            "Inuvik")
-    
+
     for (i in seq_along(sites_to_replace)) {
       site_to_replace <- sites_to_replace[i]
       replacement_site <- replacement_sites[i]
-      
+
       if (site_to_replace %in% df$Site) {
         cat("Replacing", site_to_replace, "with", replacement_site, "\n")
-        
+
         # Identify rows corresponding to the site to replace
         site_to_replace_indices <- which(df$Site == site_to_replace)
-        
+
         # Replace value_normal
         df$value_normal[site_to_replace_indices] <- replacement_site
       }
     }
-    
-    
+
+
   } else{
     cat("No override performed. Parameter is not rain")
   }
-  
-  
+
+
   df <- df
   df$value_normal <- as.numeric(df$value_normal)
   df$value_select_year <- as.numeric(df$value_select_year)
-  
+
   if(parameter == "mean_temp"| parameter == "t_air") {
     df <- df %>%
       dplyr::mutate(value_percent_normal = round((value_select_year - value_normal), 1)) %>%
@@ -257,40 +257,40 @@ df_rank <- df_summary %>%
       dplyr::filter(!is.na(value_percent_normal)) %>%
       dplyr::rename(longitude = lon, latitude = lat)
   }
-  
+
   if(percent_of_normal == T) {
     df$bin <- cut(df$value_percent_normal,
-                  legend_numbers, 
+                  legend_numbers,
                   include.lowest = T,
                   labels = legend_labels)
   } else {
     df$bin <- cut(df$value_select_year,
-                  legend_numbers, 
+                  legend_numbers,
                   include.lowest = T,
                   labels = legend_labels)
   }
-  
+
   if(parameter == "mean_temp"| parameter == "t_air") {
     bin_colours <- leaflet::colorFactor(palette = "RdYlBu", df$bin, reverse = T)
   } else {
     bin_colours <- leaflet::colorFactor(palette = "RdYlBu", df$bin)
   }
-  
+
   # Add NA values for empty bins so that the legend includes all bins
   new_values <- levels(df$bin)[!c(levels(df$bin) %in% unique(df$bin))]
   if(length(new_values) > 0) {
-    
+
     m <- matrix(ncol = ncol(df) - 1, nrow = length(new_values))
     df_add <- data.frame(m, new_values)
     colnames(df_add) <- colnames(df)
     df <- dplyr::bind_rows(df, df_add)
     df$bin <- factor(df$bin, levels = legend_labels)
-    
+
   }
-  
+
   # if % of norm & parameter contains "Mean Air Temperature" etc, assigns legend units accordingly
   if(percent_of_normal == T & grepl(paste0("(?i)", parameter), "Mean Air Temperature") == T |
-     percent_of_normal == T & grepl(paste0("(?i)", parameter), "mean_temp") == T | 
+     percent_of_normal == T & grepl(paste0("(?i)", parameter), "mean_temp") == T |
      percent_of_normal == T & grepl(paste0("(?i)", parameter), "t_air") == T ) {
     legend_units <- " Anomaly" #
   } else if(percent_of_normal == T) {
@@ -308,7 +308,7 @@ df_rank <- df_summary %>%
             percent_of_normal == F & grepl(paste0("(?i)", parameter), "t_air") == T) {
     legend_units <- " (°C)"
   }
-  
+
   # Define parameters for plot titles:
   if(grepl(paste0("(?i)", parameter), "Precipitation") |
      grepl(paste0("(?i)", parameter), "total_precip"))  {
@@ -348,17 +348,17 @@ df_rank <- df_summary %>%
     normal_units <- " (°C)"
     operator <- "mean"
   }
-  
-  
-  
-  
-  
+
+
+
+
+
   # Define proj variable to project in Leaflet
   proj <- '+proj=longlat +datum=WGS84'
   NWT <- sf::st_read("C:/Users/maucl/Documents/Shapefiles/MackenzieRiverBasin_FDA.shp")
   NWT <- sf::st_transform(NWT, sp::CRS(proj))
   NWT <- sf::st_zm(NWT)
-  
+
   map <- leaflet::leaflet() %>%
     leaflet::addPolygons(data = NWT, color = "black", weight = 2, opacity = 0.5, fillOpacity = 0, group = "Mackenzie Basin") %>%
     leaflet::addLayersControl(
@@ -366,15 +366,15 @@ df_rank <- df_summary %>%
       overlayGroups = c("NWT Boundary"),
       options = leaflet::layersControlOptions(collapsed = T)) %>%
     leaflet::addProviderTiles(leaflet::providers$CartoDB.PositronNoLabels, group = "CartoDB") %>%
-    leaflet::addProviderTiles(leaflet::providers$OpenStreetMap.Mapnik, group = "Open Street Map") %>% 
+    leaflet::addProviderTiles(leaflet::providers$OpenStreetMap.Mapnik, group = "Open Street Map") %>%
     leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "ESRI Aerial") %>%
     leaflet::addLayersControl(
       baseGroups = c("CartoDB", "Open Street Map", "ESRI Aerial"),
       options = leaflet::layersControlOptions(collapsed = T)) %>%
     leaflet::addCircleMarkers(data = df,
-                              color = "black", 
+                              color = "black",
                               fillColor = ~bin_colours(bin),
-                              radius = circle_radius, 
+                              radius = circle_radius,
                               label = ~Site,
                               weight = 1,
                               opacity = 0.8,
@@ -388,17 +388,17 @@ df_rank <- df_summary %>%
                        title = paste0(select_year,"\n",legend_title),
                        opacity = 1)  %>%
     leaflet::addScaleBar()
-  
+
   if(is.na(filename)) {
     filename <- paste0(select_year, "_")
-  } 
-  
+  }
+
   htmlwidgets::saveWidget(map, file = paste0(savepath_climate, filename, ".html"))
-  
+
   map
- 
+
   cat("Note: warning message - rows missing or invalid lat/lon means there are empty bins")
-   
+
 }
 
 # Note: if warning message that data contains missing lat/lon values:

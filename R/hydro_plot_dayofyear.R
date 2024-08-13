@@ -16,9 +16,9 @@ hydro_plot_dayofyear <- function(
   water_year_start = 1,
   historic = TRUE,
   log_scale = FALSE,
-  start_month = 01, 
-  start_day = 01, 
-  end_month = 12, 
+  start_month = 01,
+  start_day = 01,
+  end_month = 12,
   end_day = 31,
   line_colours = c("blue4",
                    "orange4",
@@ -42,18 +42,18 @@ hydro_plot_dayofyear <- function(
 {
   # Read in station metadata
   station <- tidyhydat::hy_stations(station_number)
-  
+
   # Call in parameter details for plotting
   parameter <- hydro_parameter(parameter = parameter)[[1]]
   y_axis_title <- hydro_parameter(parameter = parameter)[[3]]
-  
+
   # Check for line_colours
   if(length(select_years) > length(line_colours)) {
     line_colours = rainbow(length(select_years))
   } else if(length(select_years) < length(line_colours)) {
     line_colours = line_colours[1:length(select_years)]
   }
-  
+
   # Import data
   daily_stats <- hydro_calc_dayofyear(
     parameter = parameter,
@@ -64,17 +64,17 @@ hydro_plot_dayofyear <- function(
     historic_max = historic_max,
     water_year_start = water_year_start
   )
-  
+
   # Format data into single year for plotting purposes
   daily_stats$DayofYear <- as.Date(daily_stats$DayofYear, origin = "1899-12-31")
-  
+
   # Filter data to bounds of start and end time frames
-  daily_stats <- dplyr::filter(daily_stats, 
+  daily_stats <- dplyr::filter(daily_stats,
                                DayofYear >= as.Date(paste("1900", start_month, start_day, sep = "-")) &
                                  DayofYear <= as.Date(paste("1900", end_month, end_day, sep = "-")))
 
   # Plot the graph
-  plot <- ggplot2::ggplot(daily_stats, ggplot2::aes(x = DayofYear, y = Value)) + 
+  plot <- ggplot2::ggplot(daily_stats, ggplot2::aes(x = DayofYear, y = Value)) +
     ggplot2::theme_classic() +
     ggplot2::labs(title = paste0(station$STATION_NAME, " (", station$STATION_NUMBER, ")"),
                   x = "Month", y = y_axis_title) +
@@ -100,17 +100,17 @@ hydro_plot_dayofyear <- function(
       ggplot2::geom_point(ggplot2::aes(colour = factor(Year)), shape = 19, size = point_size) +
       ggplot2::geom_line(ggplot2::aes(colour = factor(Year)), linewidth = line_size)
   }
-  
+
   if (log_scale == TRUE & parameter == "Flow") {
     plot <- plot +
       ggplot2::scale_y_continuous(trans = 'log10')
-  } 
-  
-  if ((is.na(y_min) == F) && (is.na(y_max) == F)) {
-    plot <- plot + 
-      ggplot2::ylim(y_min, y_max) 
   }
-  
+
+  if ((is.na(y_min) == F) && (is.na(y_max) == F)) {
+    plot <- plot +
+      ggplot2::ylim(y_min, y_max)
+  }
+
   if(station_number == "07OB002") {
     plot <- plot +
       ggplot2::scale_y_continuous(breaks = seq(156, 157.9, by = 0.1),
@@ -119,15 +119,15 @@ hydro_plot_dayofyear <- function(
                                          "157.0", rep("", 4),
                                          "157.5", rep("", 4)))
   }
-  
+
   if(save == TRUE) {
   ggplot2::ggsave(paste0(file_name, ".", extension), plot = plot, device = extension,
                   path = ifelse(exists("save_path"), save_path, getwd()),
                   scale = 1, width = plot_width, height = plot_height, units = c("cm"), dpi = dpi)
   }
-  
+
   plot
-  
+
 }
 
 
