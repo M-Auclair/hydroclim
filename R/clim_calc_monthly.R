@@ -1,10 +1,16 @@
 #' clim_calc_monthly
-#'
+#' Function to export monthly climate data
+#' @param site A character vector of site names
+#' @param parameter The input parameter
+#' @param start_year The start year
+#' @param end_year The end year
+#' @param select_year The year selected to be examined
+#' @param water_year_start The month number indicating the start of the year
 #' Returns monthly values of selected climate data
 #' @return A tibble of monthly climate data
 #' @export
 
-# Function to export monthly climate data
+
 
 clim_calc_monthly <- function(
     site,
@@ -16,8 +22,8 @@ clim_calc_monthly <- function(
 )
 
 
-  
-  
+
+
 {
 
     # Define variables
@@ -25,7 +31,7 @@ clim_calc_monthly <- function(
   param_operator <- clim_parameter(parameter = parameter)[[5]]
 
   if("all" %in% site ) {
-    # Run a for loop to calculate data for each site 
+    # Run a for loop to calculate data for each site
     for(i in site) {
       summary_data <- clim_calc_daily(
         site = i,
@@ -42,23 +48,23 @@ clim_calc_monthly <- function(
         dplyr:: mutate(lat = tail(lat, n = 1),
                        lon = tail(lon, n = 1))
       summary_data <- dplyr::bind_rows(data_adj, data_parse)
-      
+
       # Summarize data
       summary_data <- dplyr::reframe(dplyr::group_by(summary_data, Site, lat, lon, Parameter, WaterYear, Month, MonthName),
                                      Value = param_operator(Value, na.rm = T),
                                      MissingDays = sum(Count))
       summary_data <- dplyr::rename(summary_data, Year = WaterYear)
-      
+
     }
-     
-    
+
+
     dplyr::as_tibble(summary_data)
-    
-    
+
+
   } else{
-  
-  
-  # Gather data 
+
+
+  # Gather data
   summary_data <- clim_calc_daily(
     site = site,
     parameter = parameter,
@@ -67,20 +73,20 @@ clim_calc_monthly <- function(
     select_year = select_year,
     water_year_start = water_year_start
   )
-  
+
   # Summarize data
   summary_data <- dplyr::reframe(dplyr::group_by(summary_data, Site, Parameter, WaterYear, Month, MonthName),
                                  Value = param_operator(Value, na.rm = T),
                                  MissingDays = sum(Count))
   summary_data <- dplyr::rename(summary_data, Year = WaterYear)
-  
+
   }
-  
-  
+
+
   dplyr::as_tibble(summary_data)
-  
-  
-  
-  
+
+
+
+
 }
 

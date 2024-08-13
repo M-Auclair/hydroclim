@@ -1,4 +1,11 @@
 #' hydro_compile_daily
+#'Compiles hydrometric data
+#' @param station_number Station number
+#' @param parameter The input parameter
+#' @param start_date Start date in yyyy-mm-dd format
+#' @param end_date End date in yyyy-mm-dd format
+#' @param timezone Time zone, ex "America/Edmonton"
+#' @param realtime_dl Option to downlaod real time data: T or F
 #'
 #' Returns daily values of selected hydrometric data
 #' @return A tibble of the daily values
@@ -14,36 +21,36 @@ hydro_compile_daily <- function(
     timezone = "America/Edmonton",
     realtime_dl = T
     )
-  
+
 {
-  
+
   # Define variables
-  
+
   parameter <- hydro_parameter(parameter = parameter)[[1]]
   parameter.num <- hydro_parameter(parameter = parameter)[[2]]
-  
-  # This function will create two dataframes: 
+
+  # This function will create two dataframes:
   # 1) a historic dataframe (accessed from tidyhydat)
   # 2) a realtime dataframe (accessed from tidyhydat.ws)
-  
+
   end.data.final <- tidyhydat::hy_daily(station_number = station_number)
   end.data.final <- dplyr::filter(end.data.final, Parameter == parameter)
   end.data.final <- as.Date(max(end.data.final$Date))
-    
+
   if(start_date <= end.data.final) {
-    data.final <- tidyhydat::hy_daily(station_number = station_number, 
-                                      start_date = start_date, 
-                                      end_date = end_date) 
+    data.final <- tidyhydat::hy_daily(station_number = station_number,
+                                      start_date = start_date,
+                                      end_date = end_date)
     data.final <- dplyr::filter(data.final, Parameter == parameter)
     data.final <- dplyr::mutate(data.final, Data_Type = "Final")
   } else {
     data.final <- data.frame()
   }
-  
+
   # Download real time data if needed
-  
+
   if(end_date > max(data.final$Date) & realtime_dl == T) {
-    
+
     suppressWarnings(
       data.realtime <- tidyhydat.ws::realtime_ws(
         station_number = station_number,
@@ -52,27 +59,27 @@ hydro_compile_daily <- function(
         end_date = end_date,
         token = tidyhydat.ws::token_ws())
     )
-    
+
     # Convert UTC to timezone (default is system timezone)
     data.realtime <- lubridate::with_tz(data.realtime, tzone = paste(timezone))
     data.realtime <- dplyr::rename(data.realtime, "Date_Time" = "Date")
-    
+
     # Aggregate data as daily means and identify that data are provisional
     data.realtime <- dplyr::mutate(data.realtime, Date = as.Date(Date_Time))
     data.realtime <- dplyr::reframe(dplyr::group_by(data.realtime, Date),
                                     Value = mean(Value))
-    data.realtime <- dplyr::mutate(data.realtime, 
+    data.realtime <- dplyr::mutate(data.realtime,
                                    STATION_NUMBER = station_number,
                                    Parameter = parameter,
                                    Symbol = NA,
                                    Data_Type = "Provisional")
-    
+
     data <- dplyr::bind_rows(data.final, data.realtime)
-    
+
   } else {
     data <- data.final
   }
-  
+
   dplyr::as_tibble(data)
-  
+
 }

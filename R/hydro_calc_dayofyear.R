@@ -1,10 +1,18 @@
 #' hydro_calc_dayofyear
 #'
 #' Calculates daily values of hydrometric data, along with summary stats for each day of year
+#' @param station_number Station number
+#' @param parameter The input parameter
+#' @param select_years Range of years to plot in yyyy:yyyy format
+#' @param water_year_start The month number indicating the start of the year
+#' @param after_bennett If T sets historic min to 1972
+#' @param historic_min Set historic min year
+#' @param historic_max Set historic max
+
 #' @return A tibble of the daily values
 #' @export
 
-# Function to plot hydrometric data
+
 
 hydro_calc_dayofyear <- function(
   station_number,
@@ -15,16 +23,16 @@ hydro_calc_dayofyear <- function(
   historic_min = NA,
   historic_max = NA
   )
-  
+
 {
-  
-  
+
+
   if(lubridate::year(Sys.Date() - 548) > max(select_years)) {
     realtime_dl = F
   } else {
     realtime_dl = T
   }
-  
+
   data <- hydro_calc_daily(
     station_number = station_number,
     parameter = parameter,
@@ -32,19 +40,19 @@ hydro_calc_dayofyear <- function(
   )
 
   # Filter for selected years
-  
+
   if(after_bennett == T) {
     historic_min = 1972
   }
-  
-  stat_data <- dplyr::filter(data, 
+
+  stat_data <- dplyr::filter(data,
                              WaterYear >= ifelse(is.na(historic_min),
                                                             min(WaterYear),
                                                             historic_min) &
                                WaterYear <= ifelse(is.na(historic_max),
                                                    max(WaterYear),
                                                    historic_max))
-  
+
   # Calculate annual statistics
   stat_data <- dplyr::reframe(dplyr::group_by(stat_data, STATION_NUMBER, DayofYear),
                               Max = max(Value, na.rm = T),
@@ -57,21 +65,21 @@ hydro_calc_dayofyear <- function(
                               P50 = quantile(Value, 0.50, na.rm = T),
                               P25 = quantile(Value, 0.25, na.rm = T),
                               P10 = quantile(Value, 0.10, na.rm = T),
-                              P05 = quantile(Value, 0.05, na.rm = T))  
-  
+                              P05 = quantile(Value, 0.05, na.rm = T))
+
   # Filter analysis_data to select_years argument
-  
+
   select_analysis_data <- dplyr::filter(data, WaterYear %in% select_years)
 
   daily_stats <- base::merge(select_analysis_data, stat_data, by = c("DayofYear", "STATION_NUMBER"))
   daily_stats <- dplyr::arrange(daily_stats, Date, STATION_NUMBER, DayofYear)
   daily_stats <- dplyr::rename(daily_stats, Year = WaterYear)
   daily_stats <- dplyr::select(daily_stats, -c("CalendarYear", "Month", "MonthName"))
-  
-  dplyr::as_tibble(daily_stats)
-  
-}
-  
 
-  
+  dplyr::as_tibble(daily_stats)
+
+}
+
+
+
 

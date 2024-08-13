@@ -1,5 +1,11 @@
 #' clim_compile_daily
 #'
+#' @param site A character vector of site names
+#' @param parameter The input parameter
+#' @param start_year The start year
+#' @param end_year The end year
+#' @param select_year The year selected to be examined
+#' @param rain_cutoff Default is 0, air temp cutoff to determine if precip is rain or snow
 #' Returns daily values of selected climate data
 #' @return A tibble of daily climate data
 #' @export
@@ -18,7 +24,7 @@ clim_compile_daily <- function(
 
 {
 
-  # Import data locally
+  # Import data locally - old code
   #data <- readRDS(paste0(data_path, merged_data, ".rds")) # Ryan's OG code - for ECCC data
   #data <- readRDS(paste0(data_path, merged_data_clean, ".rds")) # MA edits - for all data
 
@@ -41,6 +47,8 @@ clim_compile_daily <- function(
 
     # Add SWE or rain column if necessary
     # MA changed from "mean_temp" to "t_air" Feb 13, 2024 to resolve error message
+    rain_cutoff <- rain_cutoff
+
     if(parameter == "SWE") {
       data <- dplyr::mutate(data, SWE = ifelse(t_air >= rain_cutoff, 0, total_precip))
     } else if(parameter == "rain") {

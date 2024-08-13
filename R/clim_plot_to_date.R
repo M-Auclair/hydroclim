@@ -1,10 +1,30 @@
 #' clim_plot_to_date
-#'
+#' Function to plot climate data to the current date as a boxplot
+#' @param site A character vector of site names
+#' @param parameter The input parameter
+#' @param select_year The year selected to be examined, default assumes current date as select_year
+#' @param water_year_start The month number indicating the start of the year
+#' @param start_year The start year
+#' @param end_year The end year
+#' @param end_date The end date, default assumes current date as end_date
+#' @param max_missing_days The maximum missing days allowed for summarized data
+#' @param y_min The lower limit of plot y-axis
+#' @param y_max The upper limit of plot y-axis
+#' @param plot_break If TRUE, adds break to y-axis
+#' @param select_year_point_size The geom_point size of select year points
+#' @param historic_point_size The geom_point size of historic years
+#' @param legend_position The position of the legend on the plot
+#' @param save Option to save plot - TRUE or FALSE
+#' @param plot_width Width of the plot in cm
+#' @param plot_height Height of the plot in cm
+#' @param dpi dots per inch resolution of plot
+#' @param file_name Name of plot file if save = TRUE
+#' @param extension File type of plot is save = TRUE
 #' Returns a boxplot of climate data up to a certain date
 #' @return A ggplot2 object of climate data
 #' @export
 
-# Function to plot climate data to the current date as a boxplot
+
 
 clim_plot_to_date <- function(
     site = c("Mackenzie"),
@@ -35,10 +55,10 @@ clim_plot_to_date <- function(
   plot_title <- clim_parameter(parameter = parameter)[[2]]
   y_axis_title <- clim_parameter(parameter = parameter)[[3]]
   point_colour <- clim_parameter(parameter = parameter)[[4]]
-  
+
   # Manually adjust 'today' to the end_date
   today <- end_date
-  
+
   plot_data <- clim_calc_daily(
     site = site,
     parameter = parameter,
@@ -47,34 +67,34 @@ clim_plot_to_date <- function(
     select_year = select_year,
     water_year_start = water_year_start
   )
-  
+
   plot_data <- dplyr::select(plot_data, -CalendarYear)
-  
+
   # Remove NA values at end of year for each site
-  
+
   plot_data <- dplyr::filter(plot_data, Date <= today)
-  
+
   # Find current julian day of the water year (i.e. 1 = first day of water year)
-  
+
   today_JD <- max(dplyr::select(dplyr::filter(plot_data, Date == today), DayofYear))
-  
+
   # Filter out all data after current julian day
-  
+
   plot_data <- dplyr::filter(plot_data, DayofYear < today_JD,
                              WaterYear > min(plot_data$WaterYear))
 
   # Filter summary_data to max_missing_days argument
-  
+
   plot_data <- dplyr::reframe(dplyr::group_by(plot_data, Site, WaterYear),
                                 Value = sum(Value, na.rm = T),
                                 MissingDays = sum(Count))
   plot_data <- dplyr::filter(plot_data, MissingDays <= max_missing_days)
-  
+
   # Choose a year to highlight on the plot
-  plot_year <- plot_data$WaterYear == select_year 
-  
+  plot_year <- plot_data$WaterYear == select_year
+
   plot_data$Site <- ordered(plot_data$Site, site)
-  
+
   plot <-  ggplot2::ggplot(plot_data, ggplot2::aes(x = Site, y = Value, group = Site)) +
     ggplot2::geom_boxplot(notch = F, outlier.shape = NA) +
     ggplot2::geom_jitter(data = plot_data[!plot_year, ], colour = "grey", alpha = 0.75, size = historic_point_size) +
@@ -92,33 +112,33 @@ clim_plot_to_date <- function(
                                     month.abb[lubridate::month(today)]),
                   x = "Location",
                   y = y_axis_title)
-  
+
   if(!is.na(y_min) == T) {
     plot <- plot +
       ggplot2::ylim(y_min, y_max)
   }
-  
+
   if(save == TRUE) {
     ggplot2::ggsave(paste0(file_name, ".", extension), plot = plot, device = extension,
                     path = ifelse(exists("save_path"), save_path, getwd()),
                     scale = 1, width = plot_width, height = plot_height, units = c("cm"), dpi = dpi)
   }
-  
+
   plot
-  
+
 }
 
 ############################################################################
 
 # if(plot_break = T) {
-#   
+#
 #   max_value <- roundUp(max(plot_data$Value), 10)
 #   n <- length(plot_data$Value)
 #   next_value <- sort(plot_data$Value, partial = n-1)[n-1]
-#   
+#
 #   plot <- plot +
 #     ggbreak::scale_y_break(c(next_value + 5, max_value - 30), ticklabels = max_value) +
-#     ggplot2::theme(legend.position = "top") 
-#   
+#     ggplot2::theme(legend.position = "top")
+#
 # }
 

@@ -1,18 +1,44 @@
 #' hydro_plot_dayofyear
-#'
+#' Function to plot hydrometric data
 #' Plots daily values of hydrometric data relative to historic values for each day of year
+#' @param station_number Station number
+#' @param parameter The input parameter
+#' @param select_years Range of years to plot in yyyy:yyyy format
+#' @param after_bennett If T sets historic min to 1972
+#' @param historic_min Set historic min year
+#' @param historic_max Set historic max
+#' @param historic If true, plots min/max and average range of historic values
+#' @param log_scale T or F to plot on log scale
+#' @param start_month Month number used to specify a start date
+#' @param start_day Day number used to specify a start date
+#' @param end_month Month number used to specify an end date
+#' @param end_day Day number used to specify an end date
+#' @param line_colours Option to select colours for sites plotted: c("blue","red","green"...)
+#' @param legend_position The position of the legend on the plot
+#' @param line_size Linewidth
+#' @param point_size size of geom_points
+#' @param legend_text_size size of legend text. Default is 8
+#' @param y_min The lower limit of plot y-axis
+#' @param y_max The upper limit of plot y-axis
+#' @param save Option to save plot
+#' @param plot_width Width of the plot in cm
+#' @param plot_height Height of the plot in cm
+#' @param dpi dots per inch resolution of plot
+#' @param file_name Name of plot file if save = TRUE
+#' @param extension Plot file type extension: ex. "png"
+
 #' @return A ggplot object of the selected station
 #' @export
 
-# Function to plot hydrometric data
+
 
 hydro_plot_dayofyear <- function(
   station_number,
   parameter,
-  select_years = 2023,
+  select_years,
   after_bennett = FALSE,
   historic_min = NA,
-  historic_max = 2022,
+  historic_max = 2023,
   water_year_start = 1,
   historic = TRUE,
   log_scale = FALSE,
