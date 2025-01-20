@@ -52,6 +52,9 @@ hydro_calc_dayofyear <- function(
                                WaterYear <= ifelse(is.na(historic_max),
                                                    max(WaterYear),
                                                    historic_max))
+  stat_data <- hydro_filter(station_number = station_number,
+                            x = stat_data) #ER added - line to filter hydrometric records
+
 
   # Calculate annual statistics
   stat_data <- dplyr::reframe(dplyr::group_by(stat_data, STATION_NUMBER, DayofYear),

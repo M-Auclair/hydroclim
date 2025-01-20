@@ -1,16 +1,6 @@
-# Functions used by other hydroclim functions
-
 ##############################################################################
-#' Define hydro parameter
-#' Defines parameter based on multiple potential user inputs
-#' @param parameter character string of the input parameter
-#' Should be flows, discharge, or water levels
-#' @return list with three elements:
-#' \item {parameter}{string indicating parameter}
-#' \item {parameter_num}{numeric code fassociated with parameter type}
-#' \item {y_axis_title}{string or expression for y-axis title in plots}
 
-
+# Defines parameter based on multiple potential user inputs
 
 hydro_parameter <- function(parameter)
 
@@ -40,15 +30,6 @@ if(grepl(paste0("(?i)", parameter), "Flows") == T |
 }
 
 ##############################################################################
-#' Defines climate parameter name based on multiple potential  inputs
-#' @param parameter character string of the input parameter
-#' @return list with five elements:
-#' \item {parameter}{string indicating parameter}
-#' \item {plot_title}{string indicating title in plots base don parameter}
-#' \item {y_axis_title}{string or expression for y-axis title in plots}
-#' \item {point_colour}{colour of points in plots}
-#' \item {parameter operator}{string indicating calculation type ("sum" or "mean").}
-
 
 
 clim_parameter <- function(parameter) {
@@ -201,11 +182,7 @@ data_check <- function(parameter) {
 ##############################################################################
 
 # analysis_prep
-#' Function to compute years based on day of year and specific water year start
-#' @param data a dataframe
-#' @param water_year_start The month number indicating the month in which the water year starts
-#' @param date logical value indicating
-#'
+
 analysis_prep <- function (data, water_year_start, date = FALSE)
 {
   data <- fasstr::fill_missing_dates(data = data, water_year_start = water_year_start)

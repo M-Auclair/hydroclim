@@ -46,7 +46,8 @@ clim_plot_to_date <- function(
     plot_height = 11,
     dpi = 900,
     file_name = "Default climate plot",
-    extension = "png"
+    extension = "png",
+    water_year
 )
 
 {
@@ -68,7 +69,7 @@ clim_plot_to_date <- function(
     water_year_start = water_year_start
   )
 
-  plot_data <- dplyr::select(plot_data, -CalendarYear)
+  #plot_data <- dplyr::select(plot_data, -CalendarYear)
 
   # Remove NA values at end of year for each site
 
@@ -85,13 +86,44 @@ clim_plot_to_date <- function(
 
   # Filter summary_data to max_missing_days argument
 
-  plot_data <- dplyr::reframe(dplyr::group_by(plot_data, Site, WaterYear),
+  # plot_data <- dplyr::reframe(dplyr::group_by(plot_data, Site, WaterYear),
+  #                               Value = sum(Value, na.rm = T),
+  #                               MissingDays = sum(Count))
+  # plot_data <- dplyr::filter(plot_data, MissingDays <= max_missing_days)
+
+  if(water_year == "T"){
+
+    plot_data <- dplyr::reframe(dplyr::group_by(plot_data, Site, WaterYear),
                                 Value = sum(Value, na.rm = T),
                                 MissingDays = sum(Count))
+  }else{
+    plot_data <- dplyr::reframe(dplyr::group_by(plot_data, Site, CalendarYear),
+                                Value = sum(Value, na.rm = T),
+                                MissingDays = sum(Count))
+  }
+
+
+  #use the line below to manually edit values
+  #plot_data$MissingDays[plot_data$Site=="Fort Simpson"&plot_data$CalendarYear==2024] <- 0
+  #plot_data$MissingDays[plot_data$Site=="Peace River"&plot_data$CalendarYear==2024] <- 0
+  #plot_data$MissingDays[plot_data$Site=="Inuvik"&plot_data$CalendarYear==2024] <- 0
+
   plot_data <- dplyr::filter(plot_data, MissingDays <= max_missing_days)
 
+  #use the line below to manually edit values
+  #plot_data$Value[plot_data$Site=="Fort Simpson"&plot_data$CalendarYear==2024] <- 130.8 #ER - updated Oct 23 2024 using a combination of FTS and ECCC values
+  #plot_data$Value[plot_data$Site=="Inuvik"&plot_data$CalendarYear==2024] <- 231.9 #ER - updated Oct 23 2024 using a combination of FTS and ECCC values
+
+
+
   # Choose a year to highlight on the plot
-  plot_year <- plot_data$WaterYear == select_year
+  #plot_year <- plot_data$WaterYear == select_year
+  if(water_year == "T"){
+    plot_year <- plot_data$WaterYear == select_year
+  } else{
+    plot_year <- plot_data$CalendarYear == select_year
+  }
+
 
   plot_data$Site <- ordered(plot_data$Site, site)
 
@@ -141,4 +173,28 @@ clim_plot_to_date <- function(
 #     ggplot2::theme(legend.position = "top")
 #
 # }
+
+
+
+
+# test to assign variables
+  site <- c("Fort Smith", "Hay River", "Yellowknife", "Norman Wells", "Fort Simpson", "Inuvik")
+  parameter <- "mean_temp"
+  select_year <- lubridate::year(Sys.Date())
+  water_year_start <- 10
+  start_year <- 1950
+  end_year <- 2023
+  end_date <- Sys.Date()
+  max_missing_days <- 10
+  y_min <- NA
+  y_max <- NA
+  select_year_point_size <- 2
+  historic_point_size <- 1
+  legend_position <- c(0.1, 0.95)
+  save <- F
+  plot_width <- 18
+  plot_height <- 11
+  dpi <- 900
+  file_name <- "SWE 2024"
+  extension <- "png"
 

@@ -32,8 +32,9 @@ clim_plot_monthly <- function(
     select_year,
     water_year_start = 1,
     water_year_end = NA,
+    water_year = FALSE,
     start_year = 1950,
-    end_year = 2024,
+    end_year = 2023,
     max_missing_days = 3,
     y_min = NA,
     y_max = NA,
@@ -66,11 +67,30 @@ clim_plot_monthly <- function(
     start_year = start_year,
     end_year = end_year,
     select_year = select_year,
-    water_year_start = water_year_start
+    water_year_start = water_year_start,
+    water_year = water_year
   )
 
+  plot_data <- summary_data
+
+  #The line below is for manually editing Fort Simpson June precip
+  if(unique(plot_data$Parameter) == "total_precip"){
+    plot_data$MissingDays[plot_data$Site=="Fort Simpson"&plot_data$Year==2024&plot_data$MonthName =="Jun"] <- 0
+    plot_data$MissingDays[plot_data$Site=="Fort Simpson"&plot_data$Year==2024&plot_data$MonthName =="Jul"] <- 0
+    plot_data$MissingDays[plot_data$Site=="Peace River"&plot_data$Year==2024&plot_data$MonthName =="Jul"] <- 0
+    plot_data$MissingDays[plot_data$Site=="Inuvik"&plot_data$Year==2024&plot_data$MonthName =="Jul"] <- 0
+  }
+
   # Filter summary_data to max_missing_days argument
-  plot_data <- dplyr::filter(summary_data, MissingDays <= max_missing_days)
+  plot_data <- dplyr::filter(plot_data, MissingDays <= max_missing_days)
+
+  if(unique(plot_data$Parameter) == "total_precip"){
+    #The line below is for manually editing Fort Simpson June precip
+    plot_data$Value[plot_data$Site=="Fort Simpson"&plot_data$Year==2024&plot_data$MonthName == "Jun"] <- 32.1 #pulled from FTS stn
+    plot_data$Value[plot_data$Site=="Fort Simpson"&plot_data$Year==2024&plot_data$MonthName == "Jul"] <- 59.6 #pulled from FTS stn
+    plot_data$Value[plot_data$Site=="Peace River"&plot_data$Year==2024&plot_data$MonthName == "Jul"] <- 49.8 #pulled from ROMA
+    plot_data$Value[plot_data$Site=="Inuvik"&plot_data$Year==2024&plot_data$MonthName == "Jul"] <- 50.6 #pulled from FTS stn
+  }
 
   # Trim data to specific months
   if(!is.na(water_year_end)) {
@@ -90,7 +110,7 @@ clim_plot_monthly <- function(
   plot <-  ggplot2::ggplot(plot_data, ggplot2::aes(x = MonthName, y = Value)) +
     ggplot2::geom_boxplot(notch = F, outlier.shape = NA) +
     ggplot2::geom_jitter(data = plot_data[!plot_year, ], colour = "grey", alpha = 0.75, size = historic_point_size) +
-    ggplot2::geom_point(data = plot_data[plot_year, ], ggplot2::aes(colour = "red"), alpha = 1, size = select_year_point_size) +
+    ggplot2::geom_point(data = plot_data[plot_year, ], ggplot2::aes(colour = point_colour), alpha = 1, size = select_year_point_size) +
     ggplot2::theme_classic() +
     ggplot2::scale_colour_manual("", labels = paste(select_year), values = point_colour) +
     ggplot2::theme(legend.position = legend_position) +

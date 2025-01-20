@@ -16,9 +16,9 @@ map_station_data<- function(parameter,
                             water_year_start,
                             filename)
 
-#
-# parameter <- "mean_temp" #
-# select_year <- 2022
+# #
+# parameter <- "rain" #
+# select_year <- 2023
 # start_year <- 1999
 # months <- c(1:12)
 # max_missing_days <- 10
@@ -29,7 +29,7 @@ map_station_data<- function(parameter,
 # min_record_length <- 10 # of nearby sites to pull normals from
 # circle_radius <- 10
 # water_year <- FALSE
-# water_year_start <- 10
+# water_year_start <- 1
 # filename <- NA
 
 
@@ -55,25 +55,25 @@ map_station_data<- function(parameter,
   site <- "all"
 
   winter_months <- c(1:4, 10:12)
-  this.year <- lubridate::year(Sys.Date())
-  this.month <- lubridate::month(Sys.Date())
-  this.day <- lubridate::day(Sys.Date())
-
+  this_year <- lubridate::year(Sys.Date())
+  this_month <- lubridate::month(Sys.Date())
+  this_day <- lubridate::day(Sys.Date())
 
   newdf <- clim_calc_monthly(
     site = site,
     parameter = parameter,
     start_year = start_year,
-    end_year = this.year, # note - assigning end_year as current year
+    end_year = this_year, # note - assigning end year as this year
     select_year = select_year,
-    water_year_start = water_year_start
+    water_year_start = water_year_start,
+    water_year = water_year
   )
 
-## commented out temporarily
-  # if(select_year == this.year & (this.month < max(months)) & water_year == FALSE) {
-  #   stop("No data available. You have selected the current year, but with months in the future")
-  # }
-  #
+
+  if(select_year == this.year & (this.month < max(months)) & water_year == FALSE) {
+    stop("No data available. You have selected the current year, but with months in the future")
+  }
+
   if(percent_of_normal == T & parameter == "mean_temp" |
      percent_of_normal == T & parameter == "t_air") {
     legend_numbers <-  c(-100, -2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2, 100)
@@ -91,13 +91,10 @@ map_station_data<- function(parameter,
   }
 
 
-  # Changed by MA, March 2024 - Ensure there is only one lat/lon per site
-
-  data_adj <- NULL
-  data_parse <- newdf %>%
+  # filter for specified months
+  data_adj <- newdf %>%
     dplyr::group_by(Site) %>%
     dplyr::filter(Month %in% months)
-  data_adj <- dplyr::bind_rows(data_adj, data_parse)
 
   # filter lat
   data <- data_adj %>%
@@ -403,3 +400,23 @@ df_rank <- df_summary %>%
 
 # Note: if warning message that data contains missing lat/lon values:
 # ^ it means there are empty bins (ie. none of the selected data fit into one (or some) of the bins on map legend)
+
+
+map_station_data(parameter = "rain",
+                 select_year = 2023,
+                 start_year = 1999,
+                 months = c(5:9),
+                 max_missing_days = 10,
+                 max_monthly_missing_days = 3,
+                 max_missing_months = 1,
+                 percent_of_normal = TRUE,
+                 years_of_record = 5,
+                 min_record_length = 10,
+                 circle_radius = 10,
+                 water_year = TRUE,
+                 water_year_start,
+                 filename = NA)
+
+
+
+

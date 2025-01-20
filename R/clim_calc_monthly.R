@@ -1,16 +1,10 @@
 #' clim_calc_monthly
-#' Function to export monthly climate data
-#' @param site A character vector of site names
-#' @param parameter The input parameter
-#' @param start_year The start year
-#' @param end_year The end year
-#' @param select_year The year selected to be examined
-#' @param water_year_start The month number indicating the start of the year
+#'
 #' Returns monthly values of selected climate data
 #' @return A tibble of monthly climate data
 #' @export
 
-
+# Function to export monthly climate data
 
 clim_calc_monthly <- function(
     site,
@@ -18,9 +12,9 @@ clim_calc_monthly <- function(
     start_year,
     end_year,
     select_year = NA,
-    water_year_start = 1
+    water_year_start = 1,
+    water_year = FALSE
 )
-
 
 
 
@@ -50,18 +44,22 @@ clim_calc_monthly <- function(
       summary_data <- dplyr::bind_rows(data_adj, data_parse)
 
       # Summarize data
-      summary_data <- dplyr::reframe(dplyr::group_by(summary_data, Site, lat, lon, Parameter, WaterYear, Month, MonthName),
-                                     Value = param_operator(Value, na.rm = T),
-                                     MissingDays = sum(Count))
+      if(water_year == F){
+
+        summary_data <- dplyr::reframe(dplyr::group_by(summary_data, Site, Parameter, CalendarYear, WaterYear, Month, MonthName),
+                                       Value = param_operator(Value, na.rm = T),
+                                       MissingDays = sum(Count))
+        summary_data <- dplyr::rename(summary_data, Year = CalendarYear)}
+
+      else {summary_data <- dplyr::reframe(dplyr::group_by(summary_data, Site, Parameter, WaterYear, Month, MonthName),
+                                           Value = param_operator(Value, na.rm = T),
+                                           MissingDays = sum(Count))
       summary_data <- dplyr::rename(summary_data, Year = WaterYear)
 
-    }
-
-
-    dplyr::as_tibble(summary_data)
-
-
-  } else{
+      }
+      dplyr::as_tibble(summary_data)
+  }
+    }else{
 
 
   # Gather data
@@ -73,20 +71,25 @@ clim_calc_monthly <- function(
     select_year = select_year,
     water_year_start = water_year_start
   )
+  if(water_year == F){
 
-  # Summarize data
-  summary_data <- dplyr::reframe(dplyr::group_by(summary_data, Site, Parameter, WaterYear, Month, MonthName),
-                                 Value = param_operator(Value, na.rm = T),
-                                 MissingDays = sum(Count))
+    summary_data <- dplyr::reframe(dplyr::group_by(summary_data, Site, Parameter, CalendarYear, WaterYear, Month, MonthName),
+                                   Value = param_operator(Value, na.rm = T),
+                                   MissingDays = sum(Count))
+    summary_data <- dplyr::rename(summary_data, Year = CalendarYear)
+
+    dplyr::as_tibble(summary_data)}
+
+  else {summary_data <- dplyr::reframe(dplyr::group_by(summary_data, Site, Parameter, WaterYear, Month, MonthName),
+                                       Value = param_operator(Value, na.rm = T),
+                                       MissingDays = sum(Count))
   summary_data <- dplyr::rename(summary_data, Year = WaterYear)
+
+  dplyr::as_tibble(summary_data)}
 
   }
 
-
-  dplyr::as_tibble(summary_data)
-
-
-
-
 }
+
+
 
