@@ -46,6 +46,8 @@ hydro_calc_daily <- function(
   # Change DayofYear column to account for no Feb. 29 data
   analysis_data <- dplyr::mutate(dplyr::group_by(analysis_data, WaterYear),
                              DayofYear = c(1:365))
+  if(parameter == "Level"){
+    analysis_data <- hydro_filter(analysis_data)}
 
   # Stop if all data is NA
   no_values_error(analysis_data$Value)
