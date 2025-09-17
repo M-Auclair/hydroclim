@@ -79,7 +79,9 @@ clim_plot_monthly <- function(
     plot_data$MissingDays[plot_data$Site=="Fort Simpson"&plot_data$Year==2024&plot_data$MonthName =="Jul"] <- 0
     plot_data$MissingDays[plot_data$Site=="Peace River"&plot_data$Year==2024&plot_data$MonthName =="Jul"] <- 0
     plot_data$MissingDays[plot_data$Site=="Inuvik"&plot_data$Year==2024&plot_data$MonthName =="Jul"] <- 0
-  }
+    plot_data$MissingDays[plot_data$Site=="Inuvik"&plot_data$Year==2025&plot_data$MonthName =="May"] <- 0
+    plot_data$MissingDays[plot_data$Site=="Inuvik"&plot_data$Year==2025&plot_data$MonthName =="Jun"] <- 0
+    }
 
   # Filter summary_data to max_missing_days argument
   plot_data <- dplyr::filter(plot_data, MissingDays <= max_missing_days)
@@ -90,7 +92,10 @@ clim_plot_monthly <- function(
     plot_data$Value[plot_data$Site=="Fort Simpson"&plot_data$Year==2024&plot_data$MonthName == "Jul"] <- 59.6 #pulled from FTS stn
     plot_data$Value[plot_data$Site=="Peace River"&plot_data$Year==2024&plot_data$MonthName == "Jul"] <- 49.8 #pulled from ROMA
     plot_data$Value[plot_data$Site=="Inuvik"&plot_data$Year==2024&plot_data$MonthName == "Jul"] <- 50.6 #pulled from FTS stn
-  }
+    plot_data$Value[plot_data$Site=="Inuvik"&plot_data$Year==2025&plot_data$MonthName =="May"] <- 10.7 #pulled from FTS stn
+    plot_data$Value[plot_data$Site=="Inuvik"&plot_data$Year==2025&plot_data$MonthName =="June"] <- 18.3 #pulled from FTS stn
+
+    }
 
   # Trim data to specific months
   if(!is.na(water_year_end)) {
