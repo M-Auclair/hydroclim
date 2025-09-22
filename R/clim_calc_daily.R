@@ -18,7 +18,8 @@ clim_calc_daily <- function(
     start_year,
     end_year,
     select_year,
-    water_year_start
+    water_year_start,
+    months = c(1:12)
 )
 
 {
@@ -76,7 +77,8 @@ clim_calc_daily <- function(
         parameter = parameter,
         start_year = start_year,
         end_year = end_year,
-        select_year = select_year
+        select_year = select_year,
+        months = months
       )
 
       analysis_data <- analysis_prep(data = data,

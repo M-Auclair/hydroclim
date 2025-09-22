@@ -19,7 +19,8 @@ clim_calc_annual <- function(
     start_year,
     end_year,
     select_year,
-    water_year_start
+    water_year_start,
+    months = c(1:12)
 )
 
 
@@ -38,7 +39,8 @@ clim_calc_annual <- function(
         start_year = start_year,
         end_year = end_year,
         select_year = select_year,
-        water_year_start = water_year_start
+        water_year_start = water_year_start,
+        months = months
       )
 
     summary_data <- dplyr::reframe(dplyr::group_by(summary_data, Site, Parameter, WaterYear),
@@ -61,7 +63,8 @@ clim_calc_annual <- function(
     start_year = start_year,
     end_year = end_year,
     select_year = select_year,
-    water_year_start = water_year_start
+    water_year_start = water_year_start,
+    months = months
   )
 
   # Summarize data
