@@ -178,23 +178,23 @@ clim_plot_to_date <- function(
 
 
 # test to assign variables
-  site <- c("Fort Smith", "Hay River", "Yellowknife", "Norman Wells", "Fort Simpson", "Inuvik")
-  parameter <- "mean_temp"
-  select_year <- lubridate::year(Sys.Date())
-  water_year_start <- 10
-  start_year <- 1950
-  end_year <- 2023
-  end_date <- Sys.Date()
-  max_missing_days <- 10
-  y_min <- NA
-  y_max <- NA
-  select_year_point_size <- 2
-  historic_point_size <- 1
-  legend_position <- c(0.1, 0.95)
-  save <- F
-  plot_width <- 18
-  plot_height <- 11
-  dpi <- 900
-  file_name <- "SWE 2024"
-  extension <- "png"
+  # site <- c("Fort Smith", "Hay River", "Yellowknife", "Norman Wells", "Fort Simpson", "Inuvik")
+  # parameter <- "mean_temp"
+  # select_year <- lubridate::year(Sys.Date())
+  # water_year_start <- 10
+  # start_year <- 1950
+  # end_year <- 2023
+  # end_date <- Sys.Date()
+  # max_missing_days <- 10
+  # y_min <- NA
+  # y_max <- NA
+  # select_year_point_size <- 2
+  # historic_point_size <- 1
+  # legend_position <- c(0.1, 0.95)
+  # save <- F
+  # plot_width <- 18
+  # plot_height <- 11
+  # dpi <- 900
+  # file_name <- "SWE 2024"
+  # extension <- "png"
 
