@@ -10,7 +10,8 @@ clim_compile_daily <- function(
     start_year,
     end_year,
     select_year,
-    rain_cutoff = 0
+    rain_cutoff = 0,
+    months = c(1:12)
 )
 
 
@@ -19,7 +20,7 @@ clim_compile_daily <- function(
 {
 
   # Import data locally
-  #data <- readRDS(paste0(data_path, merged_data, ".rds")) # Ryan's OG code - for ECCC data
+  data <- readRDS(paste0(data_path, merged_data, ".rds")) # Ryan's OG code - for ECCC data
   #data <- readRDS(paste0(data_path, merged_data_clean, ".rds")) # MA edits - for all data
 
 
@@ -59,8 +60,6 @@ clim_compile_daily <- function(
 
   } else {
 
-
-
   data <- import_site_data(site, data_path) # MA edits new - to read in data based on sites
 
   # Define variables
@@ -75,8 +74,9 @@ clim_compile_daily <- function(
 
   # Add SWE or rain column if necessary
   # MA changed from "mean_temp" to "t_air" Feb 13, 2024 to resolve error message
-  if(parameter == "SWE") {
-    data <- dplyr::mutate(data, SWE = ifelse(t_air >= 0, 0, total_precip))
+  # ER changed SWE to SWE_mm for parameter
+  if(parameter == "SWE_mm") {
+    data <- dplyr::mutate(data, SWE_mm = ifelse(t_air >= 0, 0, total_precip))
   } else if(parameter == "rain") {
     data <- dplyr::mutate(data, rain = ifelse(t_air < 0, 0, total_precip))
   }
