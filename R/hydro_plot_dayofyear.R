@@ -115,12 +115,13 @@ hydro_plot_dayofyear <- function(
   if (historic == TRUE) {
     plot <- plot +
       ggplot2::geom_ribbon(ggplot2::aes(ymin = Min, ymax = Max, fill = "Min - Max")) +
+      ggplot2::geom_ribbon(ggplot2::aes(ymin = P10, ymax = P90, fill = "10th - 90th Percentile")) + #ER - added this sept 6 2024
       ggplot2::geom_ribbon(ggplot2::aes(ymin = P25, ymax = P75, fill = "Average Range")) +
       ggplot2::geom_point(ggplot2::aes(colour = factor(Year)), shape = 19, size = point_size) +
       ggplot2::geom_line(ggplot2::aes(colour = factor(Year)), linewidth = line_size) +
       ggplot2::scale_fill_manual(name = "",
-                                 values = c("Min - Max" = "gray85",
-                                            "Average Range" = "gray75"))
+                                 breaks = c("Average Range", "10th - 90th Percentile", "Min - Max"),
+                                 values = c("gray75", "gray85", "gray95"))
   } else {
     plot <- plot +
       ggplot2::geom_point(ggplot2::aes(colour = factor(Year)), shape = 19, size = point_size) +
@@ -144,6 +145,11 @@ hydro_plot_dayofyear <- function(
                                          "156.5", rep("", 4),
                                          "157.0", rep("", 4),
                                          "157.5", rep("", 4)))
+  }
+
+  if((station_number == "10PA001") && (parameter == "Level")) {
+    plot <- plot +
+      ggplot2::ylim(5.8, 7.6)
   }
 
   if(save == TRUE) {
