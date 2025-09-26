@@ -52,12 +52,11 @@ hydro_compile_daily <- function(
   if(end_date > max(data.final$Date) & realtime_dl == T) {
 
     suppressWarnings(
-      data.realtime <- tidyhydat.ws::realtime_ws(
+      data.realtime <- tidyhydat::realtime_ws(
         station_number = station_number,
         parameters = as.numeric(parameter.num),
         start_date = max(data.final$Date) + 1,
-        end_date = end_date,
-        token = tidyhydat.ws::token_ws())
+        end_date = end_date)
     )
 
     # Convert UTC to timezone (default is system timezone)
