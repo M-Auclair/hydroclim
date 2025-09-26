@@ -15,14 +15,14 @@
 
 
 hydro_calc_dayofyear <- function(
-  station_number,
-  parameter,
-  select_years = lubridate::year(Sys.Date()),
-  water_year_start = 1,
-  after_bennett = FALSE,
-  historic_min = NA,
-  historic_max = NA
-  )
+    station_number,
+    parameter,
+    select_years = lubridate::year(Sys.Date()),
+    water_year_start = 1,
+    after_bennett = FALSE,
+    historic_min = NA,
+    historic_max = NA
+)
 
 {
 
@@ -47,14 +47,11 @@ hydro_calc_dayofyear <- function(
 
   stat_data <- dplyr::filter(data,
                              WaterYear >= ifelse(is.na(historic_min),
-                                                            min(WaterYear),
-                                                            historic_min) &
+                                                 min(WaterYear),
+                                                 historic_min) &
                                WaterYear <= ifelse(is.na(historic_max),
                                                    max(WaterYear),
                                                    historic_max))
-  stat_data <- hydro_filter(station_number = station_number,
-                            x = stat_data) #ER added - line to filter hydrometric records
-
 
   # Calculate annual statistics
   stat_data <- dplyr::reframe(dplyr::group_by(stat_data, STATION_NUMBER, DayofYear),
@@ -82,7 +79,6 @@ hydro_calc_dayofyear <- function(
   dplyr::as_tibble(daily_stats)
 
 }
-
 
 
 
