@@ -140,7 +140,7 @@ hydro_map_basin <- function(
   if(cum_precip == T){
 
     plot_data <- clim_calc_daily(
-      site = Communities,
+      site = communities,
       parameter = "total_precip",
       start_year = start_year,
       end_year = end_year,
