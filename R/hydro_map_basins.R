@@ -63,6 +63,8 @@ hydro_map_basin <- function(
     dplyr::slice(1) %>%
     dplyr::ungroup()
 
+  stations$clean_name[stations$clean_name=="Fort Mcmurray"] <- "Fort McMurray"
+
   plot_stations <- stations %>%
     dplyr::filter(clean_name %in% communities)
 
@@ -82,7 +84,6 @@ hydro_map_basin <- function(
 
   #adjust column naming
   plot_stations <- dplyr::rename(plot_stations, "Site"="clean_name")
-  plot_stations$Site[plot_stations$Site=="Fort Mcmurray"] <- "Fort McMurray"
 
   if (sub_basin_delineate == T) {
     basins_list <- lapply(station, function(stn) {
