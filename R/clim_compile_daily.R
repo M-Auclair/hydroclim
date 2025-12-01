@@ -9,13 +9,10 @@ clim_compile_daily <- function(
     parameter,
     start_year,
     end_year,
-    select_year,
+    select_years,
     rain_cutoff = 0,
     months = c(1:12)
 )
-
-
-
 
 {
 
@@ -23,25 +20,23 @@ clim_compile_daily <- function(
   data <- readRDS(paste0(data_path, merged_data, ".rds")) # Ryan's OG code - for ECCC data
   #data <- readRDS(paste0(data_path, merged_data_clean, ".rds")) # MA edits - for all data
 
-
-  ## MA Added site = all option (for map function) April 2024
-
   if ("all" %in% site  | "All" %in% site  ) {
 
-    data <- readRDS(paste0(data_path, merged_data_clean, ".rds")) # MA edits - for all data
+    data <- readRDS(paste0(data_path, merged_data, ".rds")) # MA edits - for all data
 
     # Define variables
     parameter <- clim_parameter(parameter = parameter)[[1]]
 
-    # Create vector of years
-    if(!is.na(select_year) & !select_year %in% c(start_year:end_year)) {
-      years <- as.numeric(c(start_year:end_year, select_year))
+    # Build year vector (supports multiple select_years)
+    base_years <- start_year:end_year
+
+    if (!all(is.na(select_years))) {
+      years <- sort(unique(c(base_years, select_years)))
     } else {
-      years <- c(start_year:end_year)
+      years <- base_years
     }
 
     # Add SWE or rain column if necessary
-    # MA changed from "mean_temp" to "t_air" Feb 13, 2024 to resolve error message
     if(parameter == "SWE") {
       data <- dplyr::mutate(data, SWE = ifelse(t_air >= rain_cutoff, 0, total_precip))
     } else if(parameter == "rain") {
@@ -60,21 +55,21 @@ clim_compile_daily <- function(
 
   } else {
 
-  data <- import_site_data(site, data_path) # MA edits new - to read in data based on sites
+  data <- import_site_data(site, data_path)
 
   # Define variables
   parameter <- clim_parameter(parameter = parameter)[[1]]
 
   # Create vector of years
-  if(!is.na(select_year) & !select_year %in% c(start_year:end_year)) {
-    years <- as.numeric(c(start_year:end_year, select_year))
+  base_years <- start_year:end_year
+
+  if (!all(is.na(select_years))) {
+    years <- sort(unique(c(base_years, select_years)))
   } else {
-    years <- c(start_year:end_year)
+    years <- base_years
   }
 
   # Add SWE or rain column if necessary
-  # MA changed from "mean_temp" to "t_air" Feb 13, 2024 to resolve error message
-  # ER changed SWE to SWE_mm for parameter
   if(parameter == "SWE_mm") {
     data <- dplyr::mutate(data, SWE_mm = ifelse(t_air >= 0, 0, total_precip))
   } else if(parameter == "rain") {
