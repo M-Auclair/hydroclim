@@ -119,7 +119,9 @@ hydro_map_basin <- function(
 
   # Read in a proper Mackenzie River shapefile (if desired)
   if(Mack_basin == T) {
-    Mack <- sf::st_read("C:/Users/emma_riley/Documents/Shapefiles/MackenzieRiverBasin_FDA.shp",
+     Mack <- sf::st_read(paste0("C:/Users/",
+                               tolower(Sys.getenv("USERNAME")),
+                                "/Documents/Shapefiles/MackenzieRiverBasin_FDA.shp"),
                         layer = "MackenzieRiverBasin_FDA")
     Mack <- sf::st_transform(Mack, sp::CRS(proj))
     Mack <- sf::st_zm(Mack)
