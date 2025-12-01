@@ -119,7 +119,7 @@ hydro_map_basin <- function(
 
   # Read in a proper Mackenzie River shapefile (if desired)
   if(Mack_basin == T) {
-     Mack <- sf::st_read(paste0("C:/Users/",
+    Mack <- sf::st_read(paste0("C:/Users/",
                                tolower(Sys.getenv("USERNAME")),
                                 "/Documents/Shapefiles/MackenzieRiverBasin_FDA.shp"),
                         layer = "MackenzieRiverBasin_FDA")
@@ -142,12 +142,14 @@ hydro_map_basin <- function(
 
   if(cum_precip == T){
 
+    select_years <- select_year
+
     plot_data <- clim_calc_daily(
       site = communities,
       parameter = "total_precip",
       start_year = start_year,
       end_year = end_year,
-      select_year = select_year,
+      select_years = select_years,
       water_year_start = water_year_start
     )
 
@@ -297,7 +299,7 @@ hydro_map_basin <- function(
           colors = c("#D73027","#FDAE61","#FEE090","#FFFFBF","#E0F3F8","#91BFDB","#4575B4"),
           labels = c("< 50%", "51 - 70%", "71 - 90%", "91 - 110%",
                      "111 - 130%", "131 - 150%", "> 151%"),
-          title = paste0("Cumulative Precipitation", "<br>", "April to Oct ", select_year,  "<br>", "(% of normal)"),
+          title = paste0("Cumulative Precipitation", "<br>", "Oct to Dec ", select_year,  "<br>", "(% of normal)"),
           opacity = 1
         )
     }
@@ -318,42 +320,4 @@ hydro_map_basin <- function(
   map
 
 }
-
-#test usage
-# hydro_map_basin(
-#   station = c("07NB001"),
-#   zoom = 2,
-#   Mack_basin = T,
-#   NWT_border = T,
-#   save = T,
-#   sub_basin_delineate = F,
-#   communities = c(  "Mackenzie",
-#                     "Peace River",
-#                     "Fort St John",
-#                     "High Level",
-#                     "Fort Chipewyan",
-#                     "Fort Smith",
-#                     "Hay River",
-#                     "Yellowknife",
-#                     "Fort Simpson",
-#                     "Norman Wells",
-#                     "Inuvik",
-#                     "Fort Liard",
-#                     "Fort Nelson",
-#                     "Watson Lake",
-#                     "Athabasca",
-#                     "Fort Mcmurray",
-#                     "Fort Good Hope"),
-#   plot_communities = F,
-#   plot_gauges = F,
-#   cum_precip = T, #plots cumulative precipitation
-#   save_path = paste0(user, "NT_Hydrology/Figures"),
-#   select_year = 2024,
-#   water_year_start = 4,
-#   water_year = F,
-#   end_date = "2024-10-01",
-#   plot_legend = T,
-#   adjust_manual_cum_precip = T, #change this to true if you are manually adjusting precip values based on gapfilling from FTS stns
-#   phantomjspath = "C:/Users/emma_riley/Documents/Modelling/Phantomjs/phantomjs/bin" #get phantomjs executable and save in similar directory
-# )
 
