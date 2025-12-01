@@ -227,7 +227,13 @@ hydro_map_basin <- function(
   # Create map
 
   map <- leaflet::leaflet() %>%
-    leaflet::addProviderTiles(leaflet::providers$CartoDB.PositronNoLabels, group = "CartoDB")
+    leaflet::addProviderTiles(leaflet::providers$CartoDB.PositronNoLabels, group = "CartoDB") %>%
+    leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery, group = "EsriWorld") %>%
+    leaflet::addProviderTiles(leaflet::providers$Esri.OceanBasemap, group = "EsriOcean") %>%
+    leaflet::addProviderTiles(leaflet::providers$Esri.WorldTopoMap, group = "EsriTopo") %>%
+    leaflet::addLayersControl(
+      baseGroups = c("CartoDB", "EsriWorld", "EsriOcean", "EsriTopo"),
+      options = leaflet::layersControlOptions(collapsed = T))
 
   if(sub_basin_delineate == T){
     map <- map %>%
