@@ -45,7 +45,7 @@ clim_plot_to_date_working <- function(
     parameter = parameter,
     start_year = start_year,
     end_year = end_year,
-    select_year = select_year,
+    select_years = select_year,
     water_year_start = water_year_start
   )
 
@@ -118,7 +118,8 @@ clim_plot_to_date_working <- function(
     ggplot2::theme_classic() +
     ggplot2::scale_colour_manual("", labels = paste("2025"), values = point_colour) +
     ggplot2::theme(legend.position = legend_position) +
-    ggplot2::labs(title = paste0("Cumulative precipitation for select NWT communities", plot_title),
+    ggplot2::labs(
+      title = paste0("Cumulative precipitation for select NWT communities ", plot_title),
       subtitle = expression(paste("April 1"^st, " 2025 to August 1"^st, " 2025")),
       x = "Location",
       y = y_axis_title)
