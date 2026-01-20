@@ -26,7 +26,7 @@ hydro_map_basin <- function(
     save_path,
     plot_gauges,
     select_year,
-    end_year = 2025,
+    end_year = lubridate::year(Sys.Date()),
     water_year_start,
     start_year = 1950,
     water_year,
