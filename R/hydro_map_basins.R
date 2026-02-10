@@ -33,7 +33,9 @@ hydro_map_basin <- function(
     end_date = Sys.Date(),
     max_missing_days = 11,
     adjust_manual_cum_precip = F,
-    phantomjspath
+    phantomjspath,
+    basin_colors = NULL,
+    basin_border_color = "darkgrey"
 )
 
 {
@@ -87,6 +89,19 @@ hydro_map_basin <- function(
 
   if (sub_basin_delineate == T) {
     basins_list <- lapply(station, function(stn) {
+
+      if (stn == "10PA002") {
+      yamba_path <- "C:/Users/emma_gregory/Documents/Shapefiles/YambaDelineation/YambaWatershed_GCVRT.shp"
+
+      if (file.exists(yamba_path)) {
+        basin <- sf::st_read(yamba_path, quiet = TRUE)
+        basin <- sf::st_transform(basin, sp::CRS(proj))
+        basin <- sf::st_zm(basin)
+        basin <- sf::st_make_valid(basin)
+        basin$Station <- stn
+        return(basin)
+      }
+      }
       path <- paste0(user_path, stringr::str_sub(stn, 1, 2), "/", stn, "/", stn, "_DrainageBasin_BassinDeDrainage.shp")
       if (file.exists(path)) {
         basin <- sf::st_read(path,
@@ -137,7 +152,31 @@ hydro_map_basin <- function(
   }
 
   if(sub_basin_delineate == T){
-    factpal <- colorFactor(viridis::viridis(length(station)), basin$Station)
+    stns <- unique(basin$Station)
+
+    if (!is.null(basin_colors)) {
+      # Require names so mapping is deterministic
+      if (is.null(names(basin_colors)) || any(names(basin_colors) == "")) {
+        stop("basin_colors must be a *named* character vector, e.g. c('07SB002'='#1b9e77', '07SA003'='#d95f02').")
+      }
+
+      # Ensure every station has a colour (fill missing with auto palette)
+      missing <- setdiff(stns, names(basin_colors))
+      if (length(missing) > 0) {
+        auto_cols <- viridis::viridis(length(missing))
+        names(auto_cols) <- missing
+        basin_colors <- c(basin_colors, auto_cols)
+      }
+
+      #factpal <- leaflet::colorFactor(palette = basin_colors[stns], domain = stns, na.color = "#BDBDBD") #doesn't work for assigning colours
+
+      basin <- basin %>%
+        dplyr::mutate(fillcolour = basin_colors[stns])
+
+    } else {
+      # Default behaviour if user doesn't supply colours
+      factpal <- leaflet::colorFactor(palette = viridis::viridis(length(stns)), domain = stns, na.color = "#BDBDBD")
+    }
   }
 
   if(cum_precip == T){
@@ -237,15 +276,26 @@ hydro_map_basin <- function(
       baseGroups = c("CartoDB", "EsriWorld", "EsriOcean", "EsriTopo"),
       options = leaflet::layersControlOptions(collapsed = T))
 
-  if(sub_basin_delineate == T){
+  if(sub_basin_delineate == T && (length(missing) == 0)){
     map <- map %>%
       addPolygons(data = basin,
-                  color = "darkgrey", #replaced "~factpal(Station)" with "black" or "darkgrey"
-                  fillColor = "darkgrey", #replaced "~factpal(Station)" with "green" or "darkgrey"
+                  color = basin_border_color,
+                  fillColor = as.character(basin$fillcolour),
                   weight = 2,
                   opacity = 1,
                   fillOpacity = 0.5,
-                  group = "Basin")
+                  group = "Basin",
+                  popup = ~Station)
+  } else if (sub_basin_delineate == T && (length(missing) > 0)){
+    map <- map %>%
+      addPolygons(data = basin,
+                  color = basin_border_color,
+                  fillColor = ~factpal(Station),
+                  weight = 2,
+                  opacity = 1,
+                  fillOpacity = 0.5,
+                  group = "Basin",
+                  popup = ~Station)
   }
 
   if(plot_gauges == T){
@@ -288,7 +338,8 @@ hydro_map_basin <- function(
         fillColor = ~PerCol(bin),
         fillOpacity = 1,
         opacity = 1,
-        popup = ~paste0(Site, ": ", percentnorm, " (% normal)"),
+        popup = ~paste0(Site, ": ", percentnorm, " (% normal)", "<br>",
+                        "Site cumulative precip: ", Value, " (mm)"),
         group = "NWT Communities"
       )
     #change legend elements below based on timeframe
@@ -299,7 +350,7 @@ hydro_map_basin <- function(
           colors = c("#D73027","#FDAE61","#FEE090","#FFFFBF","#E0F3F8","#91BFDB","#4575B4"),
           labels = c("< 50%", "51 - 70%", "71 - 90%", "91 - 110%",
                      "111 - 130%", "131 - 150%", "> 151%"),
-          title = paste0("Cumulative Precipitation", "<br>", "Oct to Dec ", select_year,  "<br>", "(% of normal)"),
+          title = paste0("Cumulative Precipitation", "<br>", "Oct 2024 to Oct ", select_year,  "<br>", "(% of normal)"),
           opacity = 1
         )
     }
@@ -320,4 +371,8 @@ hydro_map_basin <- function(
   map
 
 }
+
+
+
+
 
