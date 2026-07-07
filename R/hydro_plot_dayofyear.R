@@ -79,8 +79,45 @@ hydro_plot_dayofyear <- function(
   } else if(length(select_years) < length(line_colours)) {
     line_colours = line_colours[1:length(select_years)]
   }
+  # --------------------------
+  # CALCULATE PERIOD OF RECORD
+  # --------------------------
+  time_series_data <- hydro_calc_daily(
+    station_number = station_number,
+    parameter = parameter,
+    water_year_start = 1,
+    start_date = "1900-01-01",
+    end_date = Sys.Date(),
+    timezone = "America/Edmonton"
+  )
 
-  # Import data
+  years_available <- time_series_data %>%
+    dplyr::filter(!is.na(Value)) %>%
+    dplyr::pull(CalendarYear) %>%
+    unique() %>%
+    sort()
+
+  record_length <- length(years_available)
+
+  runs <- split(years_available, cumsum(c(1, diff(years_available) != 1)))
+
+  periods <- sapply(runs, function(x){
+    if(length(x)==1) x
+    else paste0(min(x), "-", max(x))
+  })
+
+  period_string <- paste(periods, collapse = "; ")
+
+  title_text <- paste0(station$STATION_NAME, " (", station_number, ")")
+
+  subtitle_text <- paste0(
+    "Record Length: ", record_length,
+    " years | Period of Record: ", period_string
+  )
+
+  # --------------------------
+  # IMPORT DATA FOR PLOT
+  # --------------------------
   daily_stats <- hydro_calc_dayofyear(
     parameter = parameter,
     station_number = station_number,
