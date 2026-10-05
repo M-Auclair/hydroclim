@@ -117,7 +117,7 @@ clim_plot_to_date <- function(
 
 
   # Choose a year to highlight on the plot
-  #plot_year <- plot_data$WaterYear == select_year
+
   if(water_year == "T"){
     plot_year <- plot_data$WaterYear == select_year
   } else{

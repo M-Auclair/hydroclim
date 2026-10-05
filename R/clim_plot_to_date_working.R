@@ -38,6 +38,7 @@ clim_plot_to_date_working <- function(
   point_colour <- clim_parameter(parameter = parameter)[[4]]
 
   # Manually adjust 'today' to the end_date
+  end_date <- as.Date(end_date)
   today <- end_date
 
   plot_data <- clim_calc_daily(
@@ -45,7 +46,7 @@ clim_plot_to_date_working <- function(
     parameter = parameter,
     start_year = start_year,
     end_year = end_year,
-    select_year = select_year,
+    select_years = select_year,
     water_year_start = water_year_start
   )
 
@@ -57,16 +58,27 @@ clim_plot_to_date_working <- function(
 
   # Find current julian day of the water year (i.e. 1 = first day of water year)
 
-  today_JD <- max(dplyr::select(dplyr::filter(plot_data, Date == today), DayofYear))
+  today <- as.Date(end_date)
+  stopifnot(!is.na(today))
+
+  wy_start_date <- as.Date(sprintf(
+    "%d-%02d-01",
+    ifelse(lubridate::month(today) >= water_year_start,
+           lubridate::year(today),
+           lubridate::year(today) - 1L),
+    water_year_start
+  ))
+
+  today_JD <- as.integer(today - wy_start_date) + 1L
 
   # Filter out all data after current julian day
 
-  plot_data <- dplyr::filter(plot_data, DayofYear < today_JD,
-                             WaterYear > min(plot_data$WaterYear))
+  plot_data <- dplyr::filter(plot_data, DayofYear <= today_JD,
+                             WaterYear > min(plot_data$WaterYear, na.rm = T))
 
   # Filter summary_data to max_missing_days argument
 
-  if(water_year == "TRUE"){
+  if(water_year== TRUE){
 
     plot_data <- dplyr::reframe(dplyr::group_by(plot_data, Site, WaterYear),
                                 Value = sum(Value, na.rm = T),
@@ -78,31 +90,16 @@ clim_plot_to_date_working <- function(
   }
 
   #use the line below to manually edit values
-  # plot_data$MissingDays[plot_data$Site=="Fort Simpson"&plot_data$CalendarYear==2024] <- 0
-  # plot_data$MissingDays[plot_data$Site=="Peace River"&plot_data$CalendarYear==2024] <- 0
-  # plot_data$MissingDays[plot_data$Site=="Inuvik"&plot_data$CalendarYear==2024] <- 0
-  # plot_data$MissingDays[plot_data$Site=="Athabasca"&plot_data$CalendarYear==2025] <- 0
-  # plot_data$MissingDays[plot_data$Site=="Athabasca"&plot_data$WaterYear==2026] <- 0
-  plot_data$MissingDays[plot_data$Site=="Inuvik"&plot_data$CalendarYear==2025] <- 0
-  plot_data$MissingDays[plot_data$Site=="Fort Liard"&plot_data$CalendarYear==2025] <- 0
-
+  plot_data$MissingDays[plot_data$Site=="Fort Chipewyan"&plot_data$CalendarYear==2025] <- 0
 
   plot_data <- dplyr::filter(plot_data, MissingDays <= max_missing_days)
 
   #use the line below to manually edit values
-  # plot_data$Value[plot_data$Site=="Fort Simpson"&plot_data$CalendarYear==2024] <- 145.6 #ER - updated Nov 4 2024 (from April 1 2024) using a combination of FTS and ECCC values
-  # plot_data$Value[plot_data$Site=="Inuvik"&plot_data$CalendarYear==2024] <- 246.4 #ER - updated Nov 4 2024 (from April 1 2024) using a combination of FTS and ECCC values
-  # plot_data$Value[plot_data$Site=="Athabasca"&plot_data$WaterYear==2025] <- 125.1 #ER - updated April 11
-  # plot_data$Value[plot_data$Site=="Athabasca"&plot_data$CalendarYear==2025] <- 83.8 #ER - updated June 4 for MTS presentation
-  # plot_data$Value[plot_data$Site=="Athabasca"&plot_data$WaterYear==2024] <- 212.1 #ER - updated May 9 for MTS water level presentation
-  # plot_data$Value[plot_data$Site=="Athabasca"&plot_data$WaterYear==2026] <- 83.8 #ER - updated June 4 for MTS water level presentation
-  plot_data$Value[plot_data$Site=="Inuvik"&plot_data$CalendarYear==2025] <- 41 #Using Shell Lake FTS data - updated July 8th
-  plot_data$Value[plot_data$Site=="Fort Liard"&plot_data$CalendarYear==2025] <- 53 #Using Fort Liard FTS data - updated July 8th
-
+  # plot_data$Value[plot_data$Site=="Fort Liard"&plot_data$WaterYear==2025] <- 212 #ER - updated using ECCC and FTS values
 
   # Choose a year to highlight on the plot
 
-  if(water_year == "TRUE"){
+  if(water_year== TRUE){
     plot_year <- plot_data$WaterYear == select_year
   } else{
     plot_year <- plot_data$CalendarYear == select_year
@@ -116,22 +113,24 @@ clim_plot_to_date_working <- function(
     ggplot2::geom_jitter(data = plot_data[!plot_year, ], colour = "grey", alpha = 0.75, size = historic_point_size) +
     ggplot2::geom_point(data = plot_data[plot_year, ], ggplot2::aes(colour = "red"), alpha = 1, size = select_year_point_size) +
     ggplot2::theme_classic() +
-    ggplot2::scale_colour_manual("", labels = paste("2025"), values = point_colour) +
-    ggplot2::theme(legend.position = legend_position) +
-    ggplot2::labs(#title = plot_title,
-      title = "Cumulative precipitation for select NWT communities", plot_title,
-      subtitle = expression(paste("April 1"^st, " 2025 to August 1"^st, " 2025")),
-      #subtitle = paste0("01 ",
-      #month.abb[water_year_start],
-      #" to ",
-      #stringr::str_pad(lubridate::day(today), 2, pad = "0"), " ",
-      #month.abb[lubridate::month(today)]),
+    ggplot2::scale_colour_manual("", labels = paste("2026"), values = point_colour) +
+    ggplot2::theme(legend.position = legend_position, axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)) +
+    ggplot2::labs(
+      title = paste0("Cumulative precipitation for select NWT communities"),
+      subtitle = expression(paste("April 1"^st, " 2026 to September 1"^st, " 2026")),
       x = "Location",
       y = y_axis_title)
 
   if(!is.na(y_min) == TRUE) {
     plot <- plot +
       ggplot2::ylim(y_min, y_max)
+  }
+
+  if (!is.na(y_max)) {
+    sel_vals <- plot_data$Value[plot_year]
+    if (length(sel_vals) > 0 && any(sel_vals > y_max, na.rm = TRUE)) {
+      warning("Selected-year value exceeds y_max; points may be clipped.")
+    }
   }
 
   if(save == TRUE) {

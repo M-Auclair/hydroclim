@@ -37,14 +37,15 @@ map_station_data<- function(parameter,
 {
   `%>%` <- magrittr::`%>%`
   `%!in%` = Negate(`%in%`)
-  savepath_climate <- "C:/Users/maucl/Documents/NT_Hydrology/Figures/"
+  user <- paste0("C:/Users/", tolower(Sys.getenv("USERNAME")), "/Documents/")
+  savepath_climate <- paste0(user, "NT_Hydrology/Figures/")
 
   # if(exists("cd_rds") == F) {
 
   ## NOTE: Commented out April 2024
   # merged_data = "Climate_data_clean_merged.rds"
-  sites = "sites_map.csv"
-  directory = "C:/Users/maucl/Documents/R_Scripts/Packages/nwtclimate/data/"
+  sites = "ECCC_sites.csv"
+  directory = paste0(user, "R_Scripts/Packages/nwtclimate/data/")
   # cd_rds <- readRDS(paste0(directory, merged_data))
   sites <- read.csv(paste0(directory, sites))
   # }

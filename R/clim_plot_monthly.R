@@ -117,7 +117,7 @@ clim_plot_monthly <- function(
     ggplot2::geom_jitter(data = plot_data[!plot_year, ], colour = "grey", alpha = 0.75, size = historic_point_size) +
     ggplot2::geom_point(data = plot_data[plot_year, ], ggplot2::aes(colour = point_colour), alpha = 1, size = select_year_point_size) +
     ggplot2::theme_classic() +
-    ggplot2::scale_colour_manual("", labels = paste(select_year), values = point_colour) +
+    ggplot2::scale_colour_manual("", labels = paste("2026"), values = point_colour) +
     ggplot2::theme(legend.position = legend_position) +
     ggplot2::labs(title = paste0(site, " ", plot_title),
                   x = "Month",

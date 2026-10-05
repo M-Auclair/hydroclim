@@ -4,7 +4,7 @@
 #' @param parameter The input parameter
 #' @param start_year The start year
 #' @param end_year The end year
-#' @param select_year The year selected to be examined
+#' @param select_years The year selected to be examined
 #' @param water_year_start The month number indicating the start of the year
 #' Returns daily values of selected climate data in a tibble suitable to calculate monthly and annual summary data
 #' @return A tibble of daily climate data
@@ -17,7 +17,7 @@ clim_calc_daily <- function(
     parameter,
     start_year,
     end_year,
-    select_year,
+    select_years,
     water_year_start,
     months = c(1:12)
 )
@@ -31,6 +31,19 @@ clim_calc_daily <- function(
   # Create blank summary data frame
   summary_data <- data.frame()
 
+  ## IMPORTANT: make sure we load enough calendar years to cover all select_years
+  ## including the preceding year if using a water year that does not start in January.
+  if (!all(is.na(select_years))) {
+    max_sel <- max(select_years, na.rm = TRUE)
+
+    # if water year starts in January, we just need that year
+    # if it starts later (e.g. Oct), we also need the previous calendar year
+    extra_year <- ifelse(water_year_start == 1, 0, 1)
+
+    compile_end_year <- max(end_year, max_sel + extra_year)
+  } else {
+    compile_end_year <- end_year
+  }
 
   if("all" %in% site ){
 
@@ -40,8 +53,8 @@ clim_calc_daily <- function(
         site = i,
         parameter = parameter,
         start_year = start_year,
-        end_year = end_year,
-        select_year = select_year
+        end_year = compile_end_year,
+        select_years = select_years
       )
 
       analysis_data <- analysis_prep(data = data,
@@ -76,8 +89,8 @@ clim_calc_daily <- function(
         site = i,
         parameter = parameter,
         start_year = start_year,
-        end_year = end_year,
-        select_year = select_year,
+        end_year = compile_end_year,
+        select_years = select_years,
         months = months
       )
 

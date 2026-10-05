@@ -44,6 +44,15 @@ x <- x %>%
   dplyr::mutate(Date = as.Date(Date),
                 Value = ifelse(STATION_NUMBER == "07KF002" & Date <= as.Date("2013-12-31"),
                                Value - 204.087, Value)) %>%
+  dplyr::mutate(Date = as.Date(Date),
+                Value = ifelse(STATION_NUMBER == "10MC003" & Date == as.Date("2025-04-01") | STATION_NUMBER == "10MC003" & Date == as.Date("2025-02-20") | STATION_NUMBER == "10MC003" & Date == as.Date("2005-04-18"),
+                               NA, Value)) %>%
+  dplyr::mutate(Date = as.Date(Date),
+                Value = ifelse(STATION_NUMBER == "10EB001" & Date == as.Date("2026-04-13"),
+                               NA, Value)) %>%
+  dplyr::mutate(Date = as.Date(Date),
+                Value = ifelse(STATION_NUMBER == "07SB017" & Date == as.Date("2026-06-09"),
+                               NA, Value)) %>%
   as_tibble()
 
 }

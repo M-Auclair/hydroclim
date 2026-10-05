@@ -99,6 +99,10 @@ hydro_plot_dayofyear <- function(
                                DayofYear >= as.Date(paste("1900", start_month, start_day, sep = "-")) &
                                  DayofYear <= as.Date(paste("1900", end_month, end_day, sep = "-")))
 
+  #manual edits for weird data
+  # daily_stats <- daily_stats %>%
+  #   dplyr::filter(daily_stats$Date < "2026-01-06")
+
   # Plot the graph
   plot <- ggplot2::ggplot(daily_stats, ggplot2::aes(x = DayofYear, y = Value)) +
     ggplot2::theme_classic() +
@@ -161,5 +165,4 @@ hydro_plot_dayofyear <- function(
   plot
 
 }
-
 

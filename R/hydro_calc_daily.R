@@ -56,6 +56,14 @@ hydro_calc_daily <- function(
 
 }
 
+#test
+test <- hydro_calc_daily(station_number="07OB001",
+                  parameter = "flow",
+                  water_year_start = 1,
+                  start_date = "1900-01-01",
+                  end_date = Sys.Date(),
+                  timezone = "America/Edmonton",
+                  realtime_dl = T)
 
 
 
